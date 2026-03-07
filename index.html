@@ -10,6 +10,62 @@
     <script src="./Assets/Script/script.js" defer></script>
 </head>
 <body>
-    <h1>LeetMetric</h1>
+    <div class="container">
+
+        <h1 style="line-height: 1;">LeetMetric</h1>
+
+        <div class="user-container">
+
+            <p>Enter your username below : </p>
+
+            <div class="user-input-container">
+
+                <input type="text" placeholder="Enter your username" id="user-input">
+                <button id="search-btn">Search</button>
+
+            </div>
+
+        </div>
+
+        <div class="stats-container">
+
+            <div class="progress">
+
+                <div class="progress-item circle">
+
+                    <div class="easy-progress">
+                        <span id="easy-label"></span>
+                        Easy
+                    </div>
+
+                </div>
+
+                <div class="progress-item circle">
+
+                    <div class="medium-progress">
+                        <span id="medium-label"></span>
+                        Medium
+                    </div>
+
+                </div>
+
+                <div class="progress-item circle">
+
+                    <div class="hard-progress">
+                        <span id="hard-label"></span>
+                        Hard
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="stats-card">
+                <!-- Populate using JS -->
+            </div>
+
+        </div>
+
+    </div>
 </body>
 </html>
