@@ -59,7 +59,7 @@ h1 {
 }
 
 .stats-container {
-    /* display: none; */
+    display: none;
 
     /* 
     display:    none    -> Removes the element entirely from the layout.
@@ -77,12 +77,13 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
 
     font-size: 1.25rem;
     color: #322873;
     text-shadow: 1 -1 2px black;
     font-weight: 700;
-    background: conic-gradient(#9696cc var(--progress-degree, 0%), #685fa0 0%);
+    background: conic-gradient(#5f5699 var(--progress-degree, 0%), #9696cc 0%);
 }
 
 .progress {
