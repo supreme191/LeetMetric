@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const mediumLabel = document.getElementById("medium-label");
     const hardLabel = document.getElementById("hard-label");
     const cardStatsContainer = document.querySelector(".stats-cards");
+    const errorMessage = document.getElementById("error-message");
 
     function validateUsername(username) {
         if (username.trim() == "") {
@@ -27,51 +28,62 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     async function fetcher(username) {
+    try {
+        searchButton.textContent = "Searching...";
+        searchButton.disabled = true;
 
-        try {
-            searchButton.textContent = "Searching...";
-            searchButton.disabled = true;
+        errorMessage.textContent = "";
+        errorMessage.style.display = "none";
 
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/'
+        const targetUrl = 'https://leetcode.com/graphql/';
+        const myHeaders = new Headers();
+        myHeaders.append("content-type", "application/json");
 
+        const graphql = JSON.stringify({
+            query: "\n    query userSessionProgress($username: String!) {\n  allQuestionsCount {\n    difficulty\n    count\n  }\n  matchedUser(username: $username) {\n    submitStats {\n      acSubmissionNum {\n        difficulty\n        count\n        submissions\n      }\n      totalSubmissionNum {\n        difficulty\n        count\n        submissions\n      }\n    }\n  }\n}\n",
+            variables: { "username": `${username}` }
+        })
 
-            const proxyUrl = 'https://cors-anywhere.herokuapp.com/'
-            const targetUrl = 'https://leetcode.com/graphql/';
-            const myHeaders = new Headers();
-            myHeaders.append("content-type", "application/json");
+        const requestOptions = {
+            method: "POST",
+            headers: myHeaders,
+            body: graphql,
+            redirect: "follow"
+        };
 
-            const graphql = JSON.stringify({
-                query: "\n    query userSessionProgress($username: String!) {\n  allQuestionsCount {\n    difficulty\n    count\n  }\n  matchedUser(username: $username) {\n    submitStats {\n      acSubmissionNum {\n        difficulty\n        count\n        submissions\n      }\n      totalSubmissionNum {\n        difficulty\n        count\n        submissions\n      }\n    }\n  }\n}\n",
-                variables: { "username": `${username}` }
-            })
+        const response = await fetch(proxyUrl + targetUrl, requestOptions);
+        
+        if (!response.ok) {
+            throw new Error("Unable to fetch the user details.");
+        }
+        
+        const parserData = await response.json();
 
-            const requestOptions = {
-                method: "POST",
-                headers: myHeaders,
-                body: graphql,
-                redirect: "follow"
-            };
-
-            const response = await fetch(proxyUrl + targetUrl, requestOptions);
-            
-            if (!response.ok) {
-                throw new Error("Unable to fetch the user details.");
-            }
-            const parserData = await response.json();
-            console.log("Logging data : ", parserData);
-
-            statsContainer.style.display = "block"
-
-            displayUserData(parserData);
+        if (!parserData.data.matchedUser) {
+            throw new Error("User Does Not Exist");
         }
 
-        catch(error) {
-            statsContainer.innerHTML = `<p>No Data Found</p>`;
-        }
-        finally {
-            searchButton.textContent = "Search";
-            searchButton.disabled = false;   
-        }
+        statsContainer.style.display = "block";
+        document.querySelector(".progress").style.display = "flex";
+        cardStatsContainer.style.display = "flex";
+        
+        displayUserData(parserData);
     }
+    catch(error) {
+        statsContainer.style.display = "block";
+        
+        errorMessage.textContent = error.message;
+        errorMessage.style.display = "block";
+
+        document.querySelector(".progress").style.display = "none";
+        cardStatsContainer.style.display = "none";
+    }
+    finally {
+        searchButton.textContent = "Search";
+        searchButton.disabled = false;   
+    }
+}
 
     function updateProgress(solved, total, label, circle) {
         const progressDegree = (solved / total) * 100
@@ -94,6 +106,32 @@ document.addEventListener("DOMContentLoaded", function() {
         updateProgress(userEasy, totalEasy, easyLabel, easyProgressCircle);
         updateProgress(userMed, totalMed, mediumLabel, mediumProgressCircle);
         updateProgress(userHard, totalHard, hardLabel, hardProgressCircle);
+    
+        
+        const cardData = [
+            {label: "Overall Submissions", value: parserData.data.matchedUser.submitStats.totalSubmissionNum[0].submissions},
+
+            {label: "Overall Easy Submissions", value: parserData.data.matchedUser.submitStats.totalSubmissionNum[1].submissions},
+
+            {label: "Overall Medium Submissions", value: parserData.data.matchedUser.submitStats.totalSubmissionNum[2].submissions},
+
+            {label: "Overall Hard Submissions", value: parserData.data.matchedUser.submitStats.totalSubmissionNum[3].submissions},
+        ];
+
+        console.log("Card Data :", cardData);
+
+
+        cardStatsContainer.innerHTML = cardData.map(
+            data => {
+                return `
+                    <div class = "card">
+                        <h3>${data.label}</h3>
+                        <p>${data.value}</p>
+                    </div>
+                `
+            }
+        ).join("");
+
     }
 
     searchButton.addEventListener("click", function() {
